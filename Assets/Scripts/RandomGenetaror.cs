@@ -33,11 +33,11 @@ public class RandomGenetaror : MonoBehaviour
     [Range(0f, 1f)] public float obstacleChance = 0.8f;
 
     public int obstacleLayerY = 2;
-    public int MinObstacleGapX = 2;
+    public int minObstacleGapX = 2;
     public int maxObstacleGapX = 4;
 
     public int minNoSpawnX = 1;
-    public int maxSpawnX = 2;
+    public int maxNoSpawnX = 2;
 
     public int width => playableWidth;
     public int height => playableHeight;
@@ -53,10 +53,27 @@ public class RandomGenetaror : MonoBehaviour
         if (hasGeneratedThisScene) return;
 
         hasGeneratedThisScene = true;
-        //GenerateRoom();
+        GenerateRoom();
+
 
     }
 
+    bool IsExcluded(int tileX, int tileY)
+    {
+        if (tileX < Mathf.Clamp(spawnSafeZoneWidth, 0, playableWidth))
+        {
+            return true;
+        }
+
+        int portalStartX = Mathf.Max(0, playableWidth - portalSafeZoneWidhtTop);
+        int portalStartY = Mathf.Max(0, playableHeight - portalSafeZonHeight);
+        if (tileX >= portalStartX && tileY >= portalStartY)
+        {
+            return true;
+        }
+
+        return false;
+    }
     void GenerateRoom()
     {
         int leftWallX = -WallOffset;
@@ -89,21 +106,45 @@ public class RandomGenetaror : MonoBehaviour
 
             for(int tileY = firtObstacleY; tileY <= lastObstacleY; tileY+=  Mathf.Max(1, obstacleLayerY))
             {
-                //int tileX = 1;
+                int tileX = 1;
 
-                //while( tileX <= playableWidth - 2)
-                //{
-                //    if(IsExcluded(tileX, tileY))
-                //    {
-                //        tileX += 1;
-                //        continue;
-                //    }
-                //}
+                while (tileX <= playableWidth - 2)
+                {
+                    if (IsExcluded(tileX, tileY))
+                    {
+                        tileX += 1;
+                        continue;
+                    }
+
+                    if (Random.value < obstacleChance)
+                    {
+                        int prefabIndex = Random.Range(0, obstaclePrefabs.Length);
+                        Instantiate(obstaclePrefabs[prefabIndex], new Vector2(tileX, tileY) , Quaternion.identity, transform);
+
+                        tileX += Random.Range(minObstacleGapX, maxObstacleGapX + 1);
+                    } else
+                    {
+                        tileX += Random.Range(minNoSpawnX, maxNoSpawnX + 1);
+                    }
+                }
             }
         }
+
+        Vector2 portalWorldPosition = new Vector2(playableHeight - 0, playableHeight - 2);
+
+        GameObject portalInstance = Instantiate(portalPrefabs, portalWorldPosition, Quaternion.identity, transform);
+
+        int playerSpawnX = -WallOffset + 1;
+        int playerSpawnY = 1;
+
+        for( int padX = playerSpawnX =1; padX <= playerSpawnX + 1; padX++)
+        {
+            Instantiate(floarPrefab, new Vector2(padX, 0), Quaternion.identity, transform);
+        }
+
+        Instantiate(playerPrefabs, new Vector2(playerSpawnX, playerSpawnY), Quaternion.identity, transform);
     }
 
-    // Update is called once per frame
     void Update()
     {
         

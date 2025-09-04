@@ -53,7 +53,17 @@ public class PortalManager : MonoBehaviour
             string nextName = Path.GetFileNameWithoutExtension(nextPath);
 
             SceneLoader.Load(nextName);
-        }
+        }     
+
+
+
+
+
+
+
+
+
+
 
     }
 
